@@ -14,6 +14,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
+    if (!supabase) return;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -27,7 +29,7 @@ export default function App() {
 
   const handleLogin = async () => {
     // Mock login for demo if Supabase is not configured
-    if (!import.meta.env.VITE_SUPABASE_URL) {
+    if (!supabase) {
       setUser({ email: 'demo@eduai.com', user_metadata: { full_name: 'Demo User' } });
       return;
     }
@@ -35,7 +37,9 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
   };
 
