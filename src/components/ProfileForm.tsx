@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Target, BookOpen, Clock, ChevronRight, Sparkles } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Target, BookOpen, Clock, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from '../lib/supabase';
 
 interface ProfileData {
   goal: string;
@@ -10,6 +11,7 @@ interface ProfileData {
 
 export default function ProfileForm({ onComplete }: { onComplete: (data: ProfileData) => void }) {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ProfileData>({
     goal: '',
     level: 'beginner',
@@ -17,6 +19,31 @@ export default function ProfileForm({ onComplete }: { onComplete: (data: Profile
   });
 
   const next = () => setStep(s => s + 1);
+
+  const handleFinish = async (finalData: ProfileData) => {
+    setLoading(true);
+    try {
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            email: user.email,
+            goal: finalData.goal,
+            level: finalData.level,
+            study_time: finalData.time,
+            full_name: user.user_metadata?.full_name
+          });
+        }
+      }
+      onComplete(finalData);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      onComplete(finalData);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
@@ -110,15 +137,16 @@ export default function ProfileForm({ onComplete }: { onComplete: (data: Profile
               {['1 hour/day', '2 hours/day', '4 hours/day', 'Full-time'].map(time => (
                 <button
                   key={time}
+                  disabled={loading}
                   onClick={() => { 
                     const finalData = { ...data, time };
                     setData(finalData);
-                    onComplete(finalData);
+                    handleFinish(finalData);
                   }}
-                  className="w-full p-4 text-left rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-emerald-500/50 hover:bg-slate-800 transition-all flex justify-between items-center"
+                  className="w-full p-4 text-left rounded-2xl border border-slate-800 bg-slate-800/50 hover:border-emerald-500/50 hover:bg-slate-800 transition-all flex justify-between items-center disabled:opacity-50"
                 >
                   <span className="text-slate-200">{time}</span>
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> : <Sparkles className="w-4 h-4 text-emerald-400" />}
                 </button>
               ))}
             </div>
@@ -128,5 +156,3 @@ export default function ProfileForm({ onComplete }: { onComplete: (data: Profile
     </div>
   );
 }
-
-import { AnimatePresence } from 'motion/react';

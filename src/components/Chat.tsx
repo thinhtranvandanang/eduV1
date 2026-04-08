@@ -3,6 +3,7 @@ import { useGemini } from '../hooks/useGemini';
 import { Send, Bot, User, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -40,7 +41,7 @@ export default function Chat() {
     let assistantContent = "";
     setMessages(prev => [...prev, { role: 'assistant', content: "" }]);
 
-    await stream(userMessage, SYSTEM_PROMPT, (chunk) => {
+    const finalContent = await stream(userMessage, SYSTEM_PROMPT, (chunk) => {
       assistantContent += chunk;
       setMessages(prev => {
         const last = prev[prev.length - 1];
@@ -50,6 +51,19 @@ export default function Chat() {
         return prev;
       });
     });
+
+    // Log to Supabase if it's an error-related query
+    if (supabase && finalContent) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('error_logs').insert({
+          user_id: user.id,
+          error_message: userMessage.substring(0, 200),
+          code_snippet: userMessage,
+          ai_suggestion: finalContent
+        });
+      }
+    }
   };
 
   return (
