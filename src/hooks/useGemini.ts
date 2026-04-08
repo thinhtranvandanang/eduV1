@@ -1,62 +1,62 @@
 import { useState, useCallback } from 'react';
-import { ai, geminiFlash } from '../lib/gemini';
-import { GenerateContentResponse } from "@google/genai";
+import { ai, MODELS } from '../lib/gemini';
+import { GenerateContentResponse } from '@google/genai';
 
 export function useGemini() {
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<string | null>(null);
+  const [response, setResponse] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const ask = useCallback(async (prompt: string, systemInstruction?: string) => {
     setLoading(true);
     setError(null);
+    setResponse("");
     try {
       const result = await ai.models.generateContent({
-        model: geminiFlash,
+        model: MODELS.flashLatest,
         contents: prompt,
         config: {
-          systemInstruction: systemInstruction || "You are a helpful AI Mentor for programming students.",
+          systemInstruction: systemInstruction
         }
       });
-      
       const text = result.text;
-      setResponse(text || null);
+      setResponse(text || "");
       return text;
     } catch (err: any) {
-      const errMsg = err.message || "An error occurred while calling Gemini API";
-      setError(errMsg);
-      console.error("Gemini API Error:", err);
+      setError(err.message || "An error occurred");
       return null;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const stream = useCallback(async (prompt: string, systemInstruction: string, onChunk: (chunk: string) => void) => {
+  const stream = useCallback(async (prompt: string, systemInstruction?: string, history: any[] = []) => {
     setLoading(true);
     setError(null);
     setResponse("");
     try {
-      const result = await ai.models.generateContentStream({
-        model: geminiFlash,
-        contents: prompt,
+      const chat = ai.chats.create({
+        model: MODELS.flashLatest,
         config: {
-          systemInstruction,
-        }
+          systemInstruction: systemInstruction
+        },
+        history: history
       });
 
+      const result = await chat.sendMessageStream({ message: prompt });
+      
       let fullText = "";
       for await (const chunk of result) {
-        const chunkText = chunk.text || "";
-        fullText += chunkText;
-        setResponse(fullText);
-        onChunk(chunkText);
+        const c = chunk as GenerateContentResponse;
+        const text = c.text;
+        if (text) {
+          fullText += text;
+          setResponse(fullText);
+        }
       }
       return fullText;
     } catch (err: any) {
-      const errMsg = err.message || "An error occurred while streaming Gemini API";
-      setError(errMsg);
-      console.error("Gemini Stream Error:", err);
+      setError(err.message || "An error occurred");
       return null;
     } finally {
       setLoading(false);
@@ -64,7 +64,7 @@ export function useGemini() {
   }, []);
 
   const reset = useCallback(() => {
-    setResponse(null);
+    setResponse("");
     setError(null);
     setLoading(false);
   }, []);

@@ -1,5 +1,5 @@
 {
-  "name": "EduAI - AI Mentor",
-  "description": "A personalized AI Mentor platform that guides students through programming roadmaps and error fixing without providing full code solutions.",
+  "name": "EduAI - AI Programming Mentor",
+  "description": "Hệ thống AI Mentor cá nhân giúp người học lập trình phát triển tư duy, tự giải quyết vấn đề và theo dõi lộ trình học tập cá nhân hóa.",
   "requestFramePermissions": []
 }

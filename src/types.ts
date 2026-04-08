@@ -1,46 +1,22 @@
-export interface UserProfile {
+export interface Task {
   id: string;
-  email: string;
-  full_name: string;
-  goal: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  study_time: string;
-  created_at: string;
-}
-
-export interface RoadmapItem {
-  id: string;
-  user_id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  order: number;
-  created_at: string;
+  status: 'todo' | 'in-progress' | 'completed';
+  difficulty: 'easy' | 'medium' | 'hard';
 }
 
-export interface LearningTask {
-  id: string;
-  roadmap_item_id: string;
-  title: string;
-  content: string;
-  is_completed: boolean;
-  created_at: string;
+export interface Roadmap {
+  goal: string;
+  tasks: Task[];
+  progress: number;
 }
 
-export interface ErrorLog {
-  id: string;
-  user_id: string;
-  error_message: string;
-  code_snippet: string;
-  ai_suggestion: string;
-  created_at: string;
-}
-
-export interface Note {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  link?: string;
-  created_at: string;
+export interface UserProfile {
+  name: string;
+  email?: string;
+  goal: 'frontend' | 'backend' | 'data' | '';
+  learningTime: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  updatedAt?: string;
 }
