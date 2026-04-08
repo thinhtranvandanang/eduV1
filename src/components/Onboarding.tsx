@@ -7,17 +7,28 @@ import { loginWithGoogle } from '../lib/supabase';
 
 interface OnboardingProps {
   onComplete: (profile: UserProfile) => void;
+  initialProfile?: UserProfile | null;
 }
 
-export function Onboarding({ onComplete }: OnboardingProps) {
-  const [step, setStep] = useState(0); // 0 is Login step
-  const [profile, setProfile] = useState<UserProfile>({
+export function Onboarding({ onComplete, initialProfile }: OnboardingProps) {
+  const [step, setStep] = useState(initialProfile?.name ? 2 : 0); 
+  const [profile, setProfile] = useState<UserProfile>(initialProfile || {
     name: '',
     goal: '',
     learningTime: '',
     level: 'beginner'
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Cập nhật profile nếu initialProfile thay đổi (ví dụ sau khi load từ Supabase)
+  React.useEffect(() => {
+    if (initialProfile && !profile.name) {
+      setProfile(initialProfile);
+      if (initialProfile.name && step === 0) {
+        setStep(2);
+      }
+    }
+  }, [initialProfile]);
 
   const goals = [
     { id: 'frontend', label: 'Frontend Developer', desc: 'React, Tailwind, Next.js' },

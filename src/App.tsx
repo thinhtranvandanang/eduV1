@@ -101,7 +101,13 @@ export default function App() {
       if (profileData) {
         console.log("Profile found:", profileData);
         setUserProfile(profileData);
-        setOnboardingComplete(true);
+        // Chỉ đánh dấu hoàn thành onboarding nếu đã có mục tiêu (goal)
+        if (profileData.goal) {
+          setOnboardingComplete(true);
+        } else {
+          console.log("Profile exists but no goal set, showing onboarding.");
+          setOnboardingComplete(false);
+        }
       } else {
         console.log("No profile found, staying on onboarding.");
       }
@@ -210,7 +216,7 @@ export default function App() {
   }
 
   if (!onboardingComplete) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    return <Onboarding onComplete={handleOnboardingComplete} initialProfile={userProfile} />;
   }
 
   return (
@@ -269,8 +275,20 @@ export default function App() {
                 ) : roadmap ? (
                   <RoadmapView roadmap={roadmap} onTaskClick={setSelectedTask} />
                 ) : (
-                  <div className="text-center py-20 text-slate-500">
-                    Không tìm thấy lộ trình. Hãy thử tải lại trang.
+                  <div className="text-center py-20 bg-slate-900/50 border border-dashed border-slate-800 rounded-3xl">
+                    <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Sparkles className="w-8 h-8 text-indigo-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Bạn chưa có lộ trình học tập</h3>
+                    <p className="text-slate-400 mb-8 max-w-sm mx-auto">
+                      Hãy để AI Mentor giúp bạn thiết kế một lộ trình tối ưu dựa trên mục tiêu của bạn.
+                    </p>
+                    <button 
+                      onClick={() => userProfile && handleOnboardingComplete(userProfile)}
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+                    >
+                      Tạo lộ trình ngay
+                    </button>
                   </div>
                 )}
               </motion.div>
