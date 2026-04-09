@@ -4,6 +4,7 @@ import { ChatInterface } from './components/ChatInterface';
 import { RoadmapView } from './components/RoadmapView';
 import { ProgressDashboard } from './components/ProgressDashboard';
 import { Onboarding } from './components/Onboarding';
+import { AdminPanel } from './components/AdminPanel';
 import { UserProfile, Roadmap, Task } from './types';
 import { useGemini } from './hooks/useGemini';
 import { Loader2, Sparkles, X, Database, ShieldCheck } from 'lucide-react';
@@ -221,7 +222,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} role={userProfile?.role} />
       
       <main className="flex-1 overflow-y-auto relative">
         <div className="max-w-6xl mx-auto p-8">
@@ -303,6 +304,17 @@ export default function App() {
                 className="h-[calc(100vh-200px)]"
               >
                 <ChatInterface />
+              </motion.div>
+            )}
+
+            {activeTab === 'admin' && userProfile?.role === 'admin' && (
+              <motion.div
+                key="admin"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <AdminPanel />
               </motion.div>
             )}
           </AnimatePresence>

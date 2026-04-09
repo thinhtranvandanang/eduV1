@@ -6,7 +6,8 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  Code2
+  Code2,
+  ShieldAlert
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -14,14 +15,19 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onLogout: () => void;
+  role?: string;
 }
 
-export function Sidebar({ activeTab, setActiveTab, onLogout }: SidebarProps) {
+export function Sidebar({ activeTab, setActiveTab, onLogout, role }: SidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'roadmap', label: 'Lộ trình', icon: Map },
     { id: 'mentor', label: 'AI Mentor', icon: MessageSquare },
   ];
+
+  if (role === 'admin') {
+    menuItems.push({ id: 'admin', label: 'Quản trị', icon: ShieldAlert });
+  }
 
   return (
     <div className="w-64 bg-[#0f172a] border-r border-slate-800 flex flex-col h-screen">

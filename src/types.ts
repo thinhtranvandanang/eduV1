@@ -18,5 +18,6 @@ export interface UserProfile {
   goal: 'frontend' | 'backend' | 'data' | '';
   learningTime: string;
   level: 'beginner' | 'intermediate' | 'advanced';
+  role?: 'user' | 'admin';
   updatedAt?: string;
 }
