@@ -7,7 +7,7 @@ import { Onboarding } from './components/Onboarding';
 import { AdminPanel } from './components/AdminPanel';
 import { UserProfile, Roadmap, Task } from './types';
 import { useGemini } from './hooks/useGemini';
-import { Loader2, Sparkles, X, Database, ShieldCheck } from 'lucide-react';
+import { Loader2, Sparkles, X, Database, ShieldCheck, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase, logout } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -136,6 +136,19 @@ export default function App() {
           tasks: roadmapData.tasks,
           progress: roadmapData.progress
         });
+      } else if (profileData && profileData.goal) {
+        // Nếu có profile (có goal) nhưng chưa có roadmap -> Tự động tạo
+        console.log("Profile exists but no roadmap, generating...");
+        const mappedProfile: UserProfile = {
+          name: profileData.name,
+          email: profileData.email,
+          goal: profileData.goal,
+          level: profileData.level,
+          learningTime: profileData.learning_time,
+          role: profileData.role,
+          updatedAt: profileData.updated_at
+        };
+        handleOnboardingComplete(mappedProfile);
       }
     } catch (error) {
       console.error("Error loading user data", error);
@@ -219,6 +232,25 @@ export default function App() {
     }
   };
 
+  const handleResetRoadmap = async () => {
+    if (!user) return;
+    
+    // Xóa roadmap cũ trong DB
+    await supabase.from('roadmaps').delete().eq('user_id', user.id);
+    
+    // Reset state
+    setRoadmap(null);
+    
+    // Cập nhật profile để xóa goal cũ, buộc người dùng chọn lại goal mới
+    if (userProfile) {
+      const updatedProfile = { ...userProfile, goal: '' as any };
+      setUserProfile(updatedProfile);
+      await supabase.from('profiles').update({ goal: '' }).eq('id', user.id);
+    }
+    
+    setShowOnboarding(true);
+  };
+
   const handleLogout = async () => {
     await logout();
   };
@@ -282,7 +314,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <ProgressDashboard />
+                <ProgressDashboard roadmap={roadmap} userProfile={userProfile} />
               </motion.div>
             )}
 
@@ -299,7 +331,28 @@ export default function App() {
                     <p className="text-slate-400 animate-pulse">Đang tạo lộ trình cá nhân hóa cho bạn...</p>
                   </div>
                 ) : roadmap ? (
-                  <RoadmapView roadmap={roadmap} onTaskClick={setSelectedTask} />
+                  <div className="space-y-6">
+                    <RoadmapView roadmap={roadmap} onTaskClick={setSelectedTask} />
+                    
+                    {roadmap.progress === 100 && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-emerald-500/10 border border-emerald-500/20 p-8 rounded-3xl text-center"
+                      >
+                        <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                        <h3 className="text-2xl font-bold text-white mb-2">Chúc mừng! Bạn đã hoàn thành lộ trình!</h3>
+                        <p className="text-slate-400 mb-6">Bạn đã xuất sắc chinh phục mục tiêu {roadmap.goal}. Bạn đã sẵn sàng cho thử thách tiếp theo chưa?</p>
+                        <button 
+                          onClick={handleResetRoadmap}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 mx-auto"
+                        >
+                          <Sparkles className="w-5 h-5" />
+                          Bắt đầu lộ trình mới
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
                 ) : (
                   <div className="text-center py-20 bg-slate-900/50 border border-dashed border-slate-800 rounded-3xl">
                     <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">

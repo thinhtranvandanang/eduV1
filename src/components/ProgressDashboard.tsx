@@ -10,12 +10,22 @@ import {
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 
-export function ProgressDashboard() {
+import { Roadmap, UserProfile } from '../types';
+
+interface ProgressDashboardProps {
+  roadmap: Roadmap | null;
+  userProfile: UserProfile | null;
+}
+
+export function ProgressDashboard({ roadmap, userProfile }: ProgressDashboardProps) {
+  const completedTasks = roadmap?.tasks.filter(t => t.status === 'completed').length || 0;
+  const totalTasks = roadmap?.tasks.length || 0;
+  
   const stats = [
-    { label: 'Ngày học liên tiếp', value: '12', icon: Flame, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-    { label: 'Bài tập hoàn thành', value: '48', icon: Trophy, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-    { label: 'Thời gian học tuần này', value: '18h', icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Trình độ hiện tại', value: 'Beginner+', icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'Tiến độ tổng thể', value: `${roadmap?.progress || 0}%`, icon: Flame, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { label: 'Bài tập hoàn thành', value: `${completedTasks}/${totalTasks}`, icon: Trophy, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+    { label: 'Mục tiêu hiện tại', value: userProfile?.goal || 'N/A', icon: Target, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Trình độ', value: userProfile?.level || 'N/A', icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-500/10' },
   ];
 
   return (
@@ -32,7 +42,7 @@ export function ProgressDashboard() {
             <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110", stat.bg)}>
               <stat.icon className={cn("w-6 h-6", stat.color)} />
             </div>
-            <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+            <div className="text-2xl font-bold text-white mb-1 uppercase">{stat.value}</div>
             <div className="text-sm text-slate-400">{stat.label}</div>
           </motion.div>
         ))}
@@ -42,28 +52,34 @@ export function ProgressDashboard() {
         <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl">
           <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
             <Target className="w-5 h-5 text-indigo-400" />
-            Mục tiêu sắp tới
+            Chi tiết các bước
           </h3>
           <div className="space-y-4">
-            {[
-              { title: 'Hoàn thành React Hooks', progress: 80 },
-              { title: 'Xây dựng Todo App', progress: 30 },
-              { title: 'Học Tailwind CSS nâng cao', progress: 10 },
-            ].map((goal, i) => (
+            {roadmap?.tasks.slice(0, 5).map((task, i) => (
               <div key={i} className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-300">{goal.title}</span>
-                  <span className="text-indigo-400 font-medium">{goal.progress}%</span>
+                  <span className={cn(
+                    "text-slate-300",
+                    task.status === 'completed' && "line-through opacity-50"
+                  )}>{task.title}</span>
+                  <span className="text-indigo-400 font-medium">
+                    {task.status === 'completed' ? '100%' : task.status === 'in-progress' ? '50%' : '0%'}
+                  </span>
                 </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }}
-                    animate={{ width: `${goal.progress}%` }}
-                    className="h-full bg-indigo-600 rounded-full"
+                    animate={{ width: task.status === 'completed' ? '100%' : task.status === 'in-progress' ? '50%' : '0%' }}
+                    className={cn(
+                      "h-full rounded-full",
+                      task.status === 'completed' ? "bg-emerald-500" : "bg-indigo-600"
+                    )}
                   />
                 </div>
               </div>
-            ))}
+            )) || (
+              <p className="text-slate-500 text-center py-8">Chưa có dữ liệu lộ trình.</p>
+            )}
           </div>
         </div>
 
