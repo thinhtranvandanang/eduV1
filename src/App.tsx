@@ -37,6 +37,7 @@ Hãy tạo khoảng 8-10 task quan trọng nhất để bắt đầu.`;
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
@@ -101,9 +102,18 @@ export default function App() {
 
       if (profileData) {
         console.log("Profile found:", profileData);
-        setUserProfile(profileData);
+        const mappedProfile: UserProfile = {
+          name: profileData.name,
+          email: profileData.email,
+          goal: profileData.goal,
+          level: profileData.level,
+          learningTime: profileData.learning_time,
+          role: profileData.role,
+          updatedAt: profileData.updated_at
+        };
+        setUserProfile(mappedProfile);
         // Chỉ đánh dấu hoàn thành onboarding nếu đã có mục tiêu (goal)
-        if (profileData.goal) {
+        if (mappedProfile.goal) {
           setOnboardingComplete(true);
         } else {
           console.log("Profile exists but no goal set, showing onboarding.");
@@ -145,7 +155,12 @@ export default function App() {
     if (user) {
       await supabase.from('profiles').upsert({
         id: user.id,
-        ...finalProfile
+        name: finalProfile.name,
+        email: finalProfile.email,
+        goal: finalProfile.goal,
+        level: finalProfile.level,
+        learning_time: finalProfile.learningTime,
+        role: finalProfile.role || 'user'
       });
     }
     
@@ -216,10 +231,17 @@ export default function App() {
     );
   }
 
-  if (!onboardingComplete) {
-    return <Onboarding onComplete={handleOnboardingComplete} initialProfile={userProfile} />;
+  // Nếu chưa đăng nhập và chưa hoàn thành onboarding (khách), hiện onboarding
+  if ((!user && !onboardingComplete) || showOnboarding) {
+    return <Onboarding onComplete={(p) => {
+      handleOnboardingComplete(p);
+      setShowOnboarding(false);
+    }} initialProfile={userProfile} />;
   }
 
+  // Nếu đã đăng nhập nhưng chưa có mục tiêu, chúng ta vẫn cho vào Dashboard 
+  // nhưng có thể hiển thị thông báo hoặc tự động chuyển sang tab roadmap để họ tạo.
+  
   return (
     <div className="flex h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} role={userProfile?.role} />
@@ -232,7 +254,10 @@ export default function App() {
                 Chào mừng, <span className="text-indigo-400">{userProfile?.name}</span>!
               </h1>
               <p className="text-slate-400 flex items-center gap-2">
-                Hôm nay là một ngày tuyệt vời để học <span className="text-indigo-400 font-medium">{userProfile?.goal}</span>.
+                {userProfile?.goal 
+                  ? <>Hôm nay là một ngày tuyệt vời để học <span className="text-indigo-400 font-medium">{userProfile.goal}</span>.</>
+                  : "Hãy thiết lập mục tiêu học tập để bắt đầu hành trình của bạn."
+                }
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -285,10 +310,16 @@ export default function App() {
                       Hãy để AI Mentor giúp bạn thiết kế một lộ trình tối ưu dựa trên mục tiêu của bạn.
                     </p>
                     <button 
-                      onClick={() => userProfile && handleOnboardingComplete(userProfile)}
+                      onClick={() => {
+                        if (userProfile?.goal) {
+                          handleOnboardingComplete(userProfile);
+                        } else {
+                          setShowOnboarding(true);
+                        }
+                      }}
                       className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
                     >
-                      Tạo lộ trình ngay
+                      {userProfile?.goal ? 'Tạo lộ trình ngay' : 'Thiết lập mục tiêu'}
                     </button>
                   </div>
                 )}
