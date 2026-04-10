@@ -5,7 +5,6 @@ import { RoadmapView } from './components/RoadmapView';
 import { ProgressDashboard } from './components/ProgressDashboard';
 import { Onboarding } from './components/Onboarding';
 import { AdminPanel } from './components/AdminPanel';
-import { SubjectTips } from './components/SubjectTips';
 import { UserProfile, Roadmap, Task } from './types';
 import { useGemini } from './hooks/useGemini';
 import { Loader2, Sparkles, X, Database, ShieldCheck, Trophy } from 'lucide-react';
@@ -389,17 +388,6 @@ export default function App() {
                 className="h-[calc(100vh-200px)]"
               >
                 <ChatInterface />
-              </motion.div>
-            )}
-
-            {activeTab === 'tips' && (
-              <motion.div
-                key="tips"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <SubjectTips />
               </motion.div>
             )}
 
