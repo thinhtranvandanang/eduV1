@@ -7,7 +7,8 @@ import {
   LogOut,
   ChevronRight,
   Code2,
-  ShieldAlert
+  ShieldAlert,
+  Lightbulb
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -23,6 +24,7 @@ export function Sidebar({ activeTab, setActiveTab, onLogout, role }: SidebarProp
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'roadmap', label: 'Lộ trình', icon: Map },
     { id: 'mentor', label: 'AI Mentor', icon: MessageSquare },
+    { id: 'tips', label: 'Mẹo học tập', icon: Lightbulb },
   ];
 
   if (role === 'admin') {
